@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>내 문장 모음</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; width: 380px; height: 520px; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; color: #111827; background: #F7F7F5; overflow: hidden; }
+.popup { position: relative; width: 380px; height: 520px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.view { display: contents; }
+.head { display: flex; align-items: center; justify-content: space-between; }
+.head h1 { margin: 0; font-size: 18px; }
+.count { font-size: 13px; font-weight: 500; color: #0F766E; background: #CCFBF1; padding: 4px 10px; border-radius: 999px; }
+.count.full { color: #7F1D1D; background: #FEE2E2; }
+.row-sub { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sub { margin: 0; font-size: 13px; color: #4B5563; }
+.list { list-style: none; margin: 0; padding: 0 4px 0 0; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
+.group { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: #374151; padding: 6px 2px 0; }
+.group .n { font-size: 12px; color: #6B7280; font-weight: 500; }
+.row { position: relative; }
+.card { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 4px; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px 56px 12px 16px; width: 100%; }
+.card.copied { background: #F0FDFA; border: 2px solid #0F766E; padding: 11px 55px 11px 15px; }
+.card .top { display: flex; align-items: center; }
+.card .src { font-size: 12px; font-weight: 500; color: #0F766E; }
+.card .flag { font-size: 12px; font-weight: 700; color: #0F766E; margin-left: 8px; }
+.card .text { font-size: 14px; line-height: 1.5; color: #111827; }
+.card .sub2 { font-size: 11px; color: #6B7280; word-break: break-all; }
+.del { all: unset; box-sizing: border-box; cursor: pointer; position: absolute; top: 10px; right: 12px; font-size: 12px; font-weight: 700; color: #B91C1C; padding: 4px 6px; border-radius: 6px; }
+.del:hover { background: #FEE2E2; }
+.foot { display: flex; justify-content: flex-end; }
+.linkbtn { all: unset; box-sizing: border-box; cursor: pointer; font-size: 13px; font-weight: 700; color: #0F766E; padding: 6px 6px; border-radius: 6px; white-space: nowrap; }
+.linkbtn:hover { background: #CCFBF1; }
+.linkbtn.danger { color: #B91C1C; }
+.linkbtn.danger:hover { background: #FEE2E2; }
+.empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; color: #4B5563; font-size: 14px; line-height: 1.6; }
+.empty strong { color: #111827; }
+.mgr { display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
+.add { display: flex; gap: 8px; }
+.add input, .rename input { flex: 1; min-width: 0; height: 36px; border: 1px solid #D1D5DB; border-radius: 8px; padding: 0 10px; font-size: 14px; font-family: inherit; background: #FFFFFF; }
+.add input:focus, .rename input:focus { border-color: #0F766E; outline: none; }
+.smallbtn { all: unset; box-sizing: border-box; cursor: pointer; height: 36px; padding: 0 12px; border-radius: 8px; background: #0F766E; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; }
+.smallbtn.ghost { background: #F3F4F6; color: #111827; }
+.errmsg { font-size: 12px; color: #B91C1C; margin: 0; min-height: 16px; }
+.colitem { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.colline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.colname { font-size: 14px; font-weight: 700; color: #111827; }
+.colcount { font-size: 12px; color: #6B7280; margin-left: 6px; font-weight: 500; }
+.colactions { display: flex; gap: 2px; }
+.rename { display: flex; gap: 6px; }
+.toast { position: absolute; left: 20px; right: 20px; bottom: 16px; background: #111827; color: #FFFFFF; border: 0; border-radius: 10px; padding: 12px 16px; font-size: 14px; text-align: left; cursor: pointer; z-index: 20; }
+.toast.error { background: #7F1D1D; }
+.overlay { position: absolute; inset: 0; background: rgba(17,24,39,0.45); display: flex; align-items: center; justify-content: center; z-index: 40; }
+.dialog { background: #FFFFFF; border-radius: 14px; padding: 24px; width: 320px; box-shadow: 0 12px 32px rgba(0,0,0,0.2); }
+.dialog h3 { margin: 0 0 8px; font-size: 17px; }
+.dialog p { margin: 0 0 20px; font-size: 14px; color: #4B5563; line-height: 1.5; }
+.btns { display: flex; gap: 8px; justify-content: flex-end; }
+.btn { all: unset; box-sizing: border-box; cursor: pointer; padding: 9px 16px; border-radius: 8px; font-size: 14px; font-weight: 700; }
+.btn.ghost { background: #F3F4F6; color: #111827; }
+.btn.danger { background: #B91C1C; color: #FFFFFF; }
+button:focus-visible, input:focus-visible { outline: 3px solid #5EEAD4; outline-offset: 2px; }
+.info { font-size: 11px; color: #6B7280; line-height: 1.5; border-top: 1px solid #E5E7EB; padding-top: 8px; word-break: break-all; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="popup">
+  <div id="listView" class="view">
+    <div class="head">
+      <h1>내 문장 모음</h1>
+      <span class="count" id="count">0개 저장됨</span>
+    </div>
+    <div class="row-sub">
+      <p class="sub">카드를 누르면 문장이 복사돼요.</p>
+      <button type="button" class="linkbtn" id="openManage">모음 관리</button>
+    </div>
+    <div class="empty" id="empty" hidden>
+      <strong>아직 저장한 문장이 없어요</strong>
+      <span>웹페이지에서 문장을 드래그한 뒤 오른쪽 버튼을 눌러 저장해 보세요.</span>
+    </div>
+    <ul class="list" id="list"></ul>
+    <div class="foot" id="foot">
+      <button type="button" class="linkbtn danger" id="deleteAllBtn">전체 삭제</button>
+    </div>
+  </div>
+
+  <div id="manageView" class="view" hidden>
+    <div class="head">
+      <h1>모음 관리</h1>
+      <button type="button" class="linkbtn" id="backList">목록으로</button>
+    </div>
+    <p class="sub">모음은 최대 8개(미분류 포함), 이름은 10자 이내로 만들 수 있어요. 미분류는 삭제할 수 없어요.</p>
+    <div class="add">
+      <input type="text" id="newName" maxlength="10" placeholder="새 모음 이름" aria-label="새 모음 이름">
+      <button type="button" class="smallbtn" id="addCol">추가</button>
+    </div>
+    <p class="errmsg" id="mgrErr"></p>
+    <div class="mgr" id="colList"></div>
+  </div>
+
+  <div class="overlay" id="confirm" hidden>
+    <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dTitle" aria-describedby="dSub">
+      <h3 id="dTitle"></h3>
+      <p id="dSub"></p>
+      <div class="btns">
+        <button type="button" class="btn ghost" id="dCancel">취소</button>
+        <button type="button" class="btn danger" id="dOk">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="info" id="info">
+    <div id="devInfo"></div>
+    <div id="verInfo"></div>
+  </div>
+
+  <button type="button" class="toast" id="toast" hidden></button>
+</div>
+<script src="popup.js"></script>
+</body>
+</html>
